@@ -1,199 +1,46 @@
-# Faster R-CNN 학습하기 (KITTI DATASET)
+# KITT Dataset을 이용해 Faster R-CNN 학습하기  (Google Coab 환경)
 
-## 1. Introduction
+## 1. Data Preparation and processing 
 
-**[Update:]** I've further simplified the code to pytorch 1.5, torchvision 0.6, and replace the customized ops roipool and nms with the one from torchvision.  if you want the old version code, please checkout branch [v1.0](https://github.com/chenyuntc/simple-faster-rcnn-pytorch/tree/v1.0)
+(1) Download KITTI Dataset and Upload on Gdirve  
 
+link= http://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=2d  
 
+1. 위 링크에 접속하여 left color images of objec data set(12GB)와 training labels of object data set(5MB)를 다운로드한다.  
 
-This project is a **Simplified** Faster R-CNN implementation based on [chainercv](https://github.com/chainer/chainercv) and other [projects](#acknowledgement) . I hope it can serve as an start code for those who want to know the detail of Faster R-CNN.  It aims to:
+2. train 폴더 내부의 7481개의 image의 확장자를 png에서 jpg로 변경해준다. 
 
-- Simplify the code (*Simple is better than complex*)
-- Make the code more straightforward (*Flat is better than nested*)
-- Match the performance reported in [origin paper](https://arxiv.org/abs/1506.01497) (*Speed Counts and mAP Matters*)
+3. 다운로드 받은 알집파일을 gdrive에 업로드 해준다.  
 
-And it has the following features:
-- It can be run as pure Python code, no more build affair. 
-- It's a minimal implemention in around 2000 lines valid code with a lot of comment and instruction.(thanks to chainercv's excellent documentation)
-- It achieves higher mAP than the origin implementation (0.712 VS 0.699)
-- It achieve speed compariable with other implementation (6fps and 14fps for train and test in TITAN XP)
-- It's memory-efficient (about 3GB for vgg16)
+4. 각각 압축을 풀어준다.
 
+(2) Data Preprocessing  
 
-![img](imgs/faster-speed.jpg)
+1. (Optional) KITTI Dataset의 class ('Car', 'Van', 'Truck','Pedestrian', 'Person_sitting', 'Cyclist', 'Tram','Misc' or 'DontCare') 의 개수는 총 9개이다.  
+class의 개수를 줄이고 싶다면 Fine tuning을 위해 classnamechange.py 파일 내부의 class를 변경해주고 실행해준다. 
 
+2. Faster R-CNN에 사용될 dataset은 Pascal VOC dataset 형식(xml 확장자파일)이므로 KITTI Dataset label(txt 확장자파일)을 변경해줄 필요가 있다.
+따라서 txt_to_xml.py 파일을 실행해준다. 
 
+3. trainval, test dataset으로 나누기 위해 ceat_train_test_txt.py 파일을 실행시켜준다. 
 
-## 2. Performance
+## 2. Git clone and import packages
 
-### 2.1 mAP
+git repository를 clone 하고 requirements.txt 파일을 실행시켜 내부의 package들을 import 한다.
 
-VGG16 train on `trainval` and test on `test` split. 
+## 3. Setting IP and Port for Using visdom  
 
-**Note**: the training shows great randomness, you may need a bit of luck and more epoches of training to reach the highest mAP. However, it should be easy to surpass the lower bound. 
+visdom library(훈련 과정을 관찰하게 해주는 library)를 사용하기 위해 visdom을 설치해준다.
+utils/config.py 내부에서 port 번호를 변경해준다. 
+utils/vis_tool.py 내부에서  Visualizer class 내부의 생성자 함수에서 visdom.Visdom('자신의 IP주소', port 번호)로 변경해준다.
 
-|              Implementation              |     mAP     |
-| :--------------------------------------: | :---------: |
-| [origin paper](https://arxiv.org/abs/1506.01497) |    0.699    |
-|    train with caffe pretrained model     | 0.700-0.712 |
-| train with torchvision pretrained model  | 0.685-0.701 |
-| model converted from [chainercv](https://github.com/chainer/chainercv/tree/master/examples/faster_rcnn) (reported 0.706) |   0.7053    |
+## 4. Train  
 
-### 2.2 Speed
+train.py 파일을 실행시킨다. (train.py 파일 내부에서 epoch를 변경할 수 있다.)  
+다른 hyperparameter를 변경하고자 하는 경우는 utils/config.py 내부에서 값을 변경해준다. 
+본인이 설정한 ip주소:port 번호로 접속을 하면
 
-|              Implementation              |   GPU    | Inference | Trainining |
-| :--------------------------------------: | :------: | :-------: | :--------: |
-| [origin paper](https://arxiv.org/abs/1506.01497) |   K40    |   5 fps   |     NA     |
-|                 This[1]                  | TITAN Xp | 14-15 fps |   6 fps    |
-| [pytorch-faster-rcnn](https://github.com/ruotianluo/pytorch-faster-rcnn) | TITAN Xp | 15-17fps  |    6fps    |
 
-[1]: make sure you install cupy correctly and only one program run on the GPU. The training speed is sensitive to your gpu status. see [troubleshooting](troubleshooting) for more info. Morever it's slow in the start of the program -- it need time to warm up.
-
-It could be faster by removing visualization, logging, averaging loss etc.
-## 3. Install dependencies
-
-
-Here is an example of create environ **from scratch** with `anaconda`
-
-```sh
-# create conda env
-conda create --name simp python=3.7
-conda activate simp
-# install pytorch
-conda install pytorch torchvision cudatoolkit=10.2 -c pytorch
-
-# install other dependancy
-pip install visdom scikit-image tqdm fire ipdb pprint matplotlib torchnet
-
-# start visdom
-nohup python -m visdom.server &
-
-```
-
-If you don't use anaconda, then:
-
-- install PyTorch with GPU (code are GPU-only), refer to [official website](http://pytorch.org)
-
-- install other dependencies:  `pip install visdom scikit-image tqdm fire ipdb pprint matplotlib torchnet`
-
-- start visdom for visualization
-
-```Bash
-nohup python -m visdom.server &
-```
-
-
-
-## 4. Demo
-
-Download pretrained model from [Google Drive](https://drive.google.com/open?id=1cQ27LIn-Rig4-Uayzy_gH5-cW-NRGVzY) or [Baidu Netdisk( passwd: scxn)](https://pan.baidu.com/s/1o87RuXW)
-
-
-See [demo.ipynb](https://github.com/chenyuntc/simple-faster-rcnn-pytorch/blob/master/demo.ipynb) for more detail.
-
-## 5. Train
-
-### 5.1 Prepare data
-
-#### Pascal VOC2007
-
-1. Download the training, validation, test data and VOCdevkit
-
-   ```Bash
-   wget http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCtrainval_06-Nov-2007.tar
-   wget http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCtest_06-Nov-2007.tar
-   wget http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCdevkit_08-Jun-2007.tar
-   ```
-
-2. Extract all of these tars into one directory named `VOCdevkit`
-
-   ```Bash
-   tar xvf VOCtrainval_06-Nov-2007.tar
-   tar xvf VOCtest_06-Nov-2007.tar
-   tar xvf VOCdevkit_08-Jun-2007.tar
-   ```
-
-3. It should have this basic structure
-
-   ```Bash
-   $VOCdevkit/                           # development kit
-   $VOCdevkit/VOCcode/                   # VOC utility code
-   $VOCdevkit/VOC2007                    # image sets, annotations, etc.
-   # ... and several other directories ...
-   ```
-
-4. modify `voc_data_dir` cfg item in `utils/config.py`, or pass it to program using argument like `--voc-data-dir=/path/to/VOCdevkit/VOC2007/` .
-
-
-### 5.2 [Optional]Prepare caffe-pretrained vgg16
-
-If you want to use caffe-pretrain model as initial weight, you can run below to get vgg16 weights converted from caffe, which is the same as the origin paper use.
-
-````Bash
-python misc/convert_caffe_pretrain.py
-````
-
-This scripts would download pretrained model and converted it to the format compatible with torchvision. If you are in China and can not download the pretrain model, you may refer to [this issue](https://github.com/chenyuntc/simple-faster-rcnn-pytorch/issues/63)
-
-Then you could specify where caffe-pretraind model `vgg16_caffe.pth` stored in `utils/config.py` by setting `caffe_pretrain_path`. The default path is ok.
-
-If you want to use pretrained model from torchvision, you may skip this step.
-
-**NOTE**, caffe pretrained model has shown slight better performance.
-
-**NOTE**: caffe model require images in BGR 0-255, while torchvision model requires images in RGB and 0-1. See `data/dataset.py`for more detail. 
-
-### 5.3 begin training
-
-
-```bash
-python train.py train --env='fasterrcnn' --plot-every=100
-```
-
-you may refer to `utils/config.py` for more argument.
-
-Some Key arguments:
-
-- `--caffe-pretrain=False`: use pretrain model from caffe or torchvision (Default: torchvison)
-- `--plot-every=n`: visualize prediction, loss etc every `n` batches.
-- `--env`: visdom env for visualization
-- `--voc_data_dir`: where the VOC data stored
-- `--use-drop`: use dropout in RoI head, default False
-- `--use-Adam`: use Adam instead of SGD, default SGD. (You need set a very low `lr` for Adam)
-- `--load-path`: pretrained model path, default `None`, if it's specified, it would be loaded.
-
-you may open browser, visit `http://<ip>:8097` and see the visualization of training procedure as below:
-
-![visdom](imgs/visdom-fasterrcnn.png)
-
-## Troubleshooting
-
-- dataloader: `received 0 items of ancdata` 
-
-  see [discussion](https://github.com/pytorch/pytorch/issues/973#issuecomment-346405667), It's alreadly fixed in [train.py](https://github.com/chenyuntc/simple-faster-rcnn-pytorch/blob/master/train.py#L17-L22). So I think you are free from this problem.
-  
-- Windows support
-
-  I don't have windows machine with GPU to debug and test it. It's welcome if anyone could make a pull request and test it.
-
-
-
-## Acknowledgement
-This work builds on many excellent works, which include:
-
-- [Yusuke Niitani's ChainerCV](https://github.com/chainer/chainercv) (mainly)
-- [Ruotian Luo's pytorch-faster-rcnn](https://github.com/ruotianluo/pytorch-faster-rcnn) which based on [Xinlei Chen's tf-faster-rcnn](https://github.com/endernewton/tf-faster-rcnn)
-- [faster-rcnn.pytorch by Jianwei Yang and Jiasen Lu](https://github.com/jwyang/faster-rcnn.pytorch).It mainly refer to [longcw's faster_rcnn_pytorch](https://github.com/longcw/faster_rcnn_pytorch)
-- All the above Repositories have referred to [py-faster-rcnn by Ross Girshick and Sean Bell](https://github.com/rbgirshick/py-faster-rcnn)  either directly or indirectly. 
-
-## ^_^
 Licensed under MIT, see the LICENSE for more detail.
 
-Contribution Welcome.
 
-If you encounter any problem, feel free to open an issue, but too busy lately.
-
-Correct me if anything is wrong or unclear.
-
-model structure
-![img](imgs/model_all.png)

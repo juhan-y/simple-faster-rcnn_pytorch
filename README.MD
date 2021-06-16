@@ -42,7 +42,21 @@ train.py 파일을 실행시킨다. (train.py 파일 내부에서 epoch를 변�
 
 #### Training Loss  
 (roi_loc_loss = roi pooling을 거친 후의 localization loss, roi_cls_loss = roi pooling을 거친 후의 classification(물체의 종류) loss, rpn_loc_loss = rpn network에서의 localization loss, rpn_cls_loss= rpn network에서의 bounding box의 classification(물체의 유무만 판단) loss)
-![image](https://user-images.githubusercontent.com/69920975/122257685-35416480-cf0b-11eb-9690-a9dace1d2373.png)
+![image](https://user-images.githubusercontent.com/69920975/122257685-35416480-cf0b-11eb-9690-a9dace1d2373.png)  
+  
+#### Total Loss
+
+![image](https://user-images.githubusercontent.com/69920975/122258320-e0eab480-cf0b-11eb-814a-6f11379494f3.png)
+  
+#### Ground Truth Image VS Predicted Image  
+
+![image](https://user-images.githubusercontent.com/69920975/122258459-04adfa80-cf0c-11eb-9cc2-e76eb5038bd8.png)
+
+
+#### mAP(meana Average Precision)  
+
+![image](https://user-images.githubusercontent.com/69920975/122258565-20b19c00-cf0c-11eb-9dfb-9255ef87b6b0.png)
+
 
 
 

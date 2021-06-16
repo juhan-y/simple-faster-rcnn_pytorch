@@ -40,7 +40,7 @@ train.py 파일을 실행시킨다. (train.py 파일 내부에서 epoch를 변�
 다른 hyperparameter를 변경하고자 하는 경우는 utils/config.py 내부에서 값을 변경해준다. 
 본인이 설정한 ip주소:port 번호로 접속을 하면 아래와 같이 훈련과정을 살펴보고 그 때의 mAP값을 측정할 수 있다.   
 
-Training Loss  
+#### Training Loss  
 (roi_loc_loss = roi pooling을 거친 후의 localization loss, roi_cls_loss = roi pooling을 거친 후의 classification(물체의 종류) loss, rpn_loc_loss = rpn network에서의 localization loss, rpn_cls_loss= rpn network에서의 bounding box의 classification(물체의 유무만 판단) loss)
 ![image](https://user-images.githubusercontent.com/69920975/122257685-35416480-cf0b-11eb-9690-a9dace1d2373.png)
 

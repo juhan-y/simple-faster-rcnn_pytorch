@@ -22,9 +22,9 @@ LossTuple = namedtuple('LossTuple',
                         ])
 # namedtuple을 이용해 dictionary와 같은 형태로 key 값들을 선언한다.
 
-# nn.Module 상속
+# nn.Module 상속하는 FasterRCNNTRainer 클래스 = 학습과정을 wrapping하며 losses를 리턴한다.
 class FasterRCNNTrainer(nn.Module):
-    """wrapper for conveniently training. return losses
+    
 
     The losses include:
 
@@ -41,11 +41,11 @@ class FasterRCNNTrainer(nn.Module):
 
     def __init__(self, faster_rcnn):
         super(FasterRCNNTrainer, self).__init__()
-        # pytorch의 nn.Module에서 상속받아 생성자 호출.
+        # pytorch의 nn.Module을 상속받아 생성자 호출.
         self.faster_rcnn = faster_rcnn
         self.rpn_sigma = opt.rpn_sigma
         self.roi_sigma = opt.roi_sigma
-        # L1 smooth loss를 위해서 hyperparameter로 sigma 설정.
+        # L1 smooth loss를 위해서 hyperparameter sigma 설정.
         # target creator create gt_bbox gt_label etc as training targets. 
         self.anchor_target_creator = AnchorTargetCreator() #Anchor box를  ground truth 박스 주변에 생성한다.
         self.proposal_target_creator = ProposalTargetCreator() #ground truth box를 roi에 할당한다.
@@ -64,9 +64,7 @@ class FasterRCNNTrainer(nn.Module):
         # visdom을 위해 confusionmeter를 사용해 confusion matrix를 만든다.
         # AverageValueMeter를 이용해 loss에 대한 평균을 구한다. (내부적으로 분산도 구함.)
     def forward(self, imgs, bboxes, labels, scale):
-        """Forward Faster R-CNN and calculate losses.
-
-        Here are notations used.
+        """ Faster- RCNN forward propagation 수행하고 loss 값을 계산한다
 
         * :math:`N` 배치사이즈 크기를 의미
         * :math:`R` 이미지 당 bounding box의 갯수
@@ -79,7 +77,7 @@ class FasterRCNNTrainer(nn.Module):
             scale (float): 전처리 동안 raw image에 적용되는 scale
 
         Returns:
-            namedtuple of 5 losses
+            namedtuple of 5 losses #namedtuple의 5개 손실함수를 반환
         """
         n = bboxes.shape[0] # bounding box의 batch size를 가져온다.
         if n != 1:
@@ -91,11 +89,11 @@ class FasterRCNNTrainer(nn.Module):
         
         features = self.faster_rcnn.extractor(imgs) #imgs의 특징을 추출한 특징맵을 생성한다
         
-        #rpn에 특징맵, image 크기, scale 값을 집어넣어서 loss값, score 값 등을 얻는다.
+        #rpn에 특징맵, image 크기, scale 값을 집어넣어서 rpn의 loss값, score 값, roi 객체, index, anchor박스를 얻는다. 등을 얻는다.
         rpn_locs, rpn_scores, rois, roi_indices, anchor = \
             self.faster_rcnn.rpn(features, img_size, scale)
 
-        # 배치사이즈가 1이기 때문에 0으로 
+        # 배치사이즈가 1이기 때문에 0으로 인덱싱
         bbox = bboxes[0]
         label = labels[0]
         rpn_score = rpn_scores[0]
@@ -104,14 +102,14 @@ class FasterRCNNTrainer(nn.Module):
 
         
         #roi 내부에서 forward propagation을 진행
+        # 
         sample_roi, gt_roi_loc, gt_roi_label = self.proposal_target_creator(
             roi,
             at.tonumpy(bbox),
             at.tonumpy(label),
             self.loc_normalize_mean,
-            self.loc_normalize_std)
-        # NOTE it's all zero because now it only support for batch=1 now
-        sample_roi_index = t.zeros(len(sample_roi))
+            self.loc_normalize_std) # ground truth box를 sampled 된 proposal에 할당한다. 
+        sample_roi_index = t.zeros(len(sample_roi)) #batchsize 크기가 1이므로 인덱스 0을 할당하여 sample_roi_index를 얻어낸다.
         roi_cls_loc, roi_score = self.faster_rcnn.head(
             features,
             sample_roi,
@@ -122,16 +120,16 @@ class FasterRCNNTrainer(nn.Module):
             at.tonumpy(bbox),
             anchor,
             img_size)
-        gt_rpn_label = at.totensor(gt_rpn_label).long()
+        gt_rpn_label = at.totensor(gt_rpn_label).long() #ground truth label, ground truth location 값을 tensor 형태로 변환
         gt_rpn_loc = at.totensor(gt_rpn_loc)
         rpn_loc_loss = _fast_rcnn_loc_loss(
             rpn_loc,
             gt_rpn_loc,
             gt_rpn_label.data,
-            self.rpn_sigma) #rpn classification loss 계산
+            self.rpn_sigma) #rpn localization loss 계산
 
         # NOTE: default value of ignore_index is -100 ...
-        rpn_cls_loss = F.cross_entropy(rpn_score, gt_rpn_label.cuda(), ignore_index=-1) #cross entropy방식 사용
+        rpn_cls_loss = F.cross_entropy(rpn_score, gt_rpn_label.cuda(), ignore_index=-1) #cross entropy방식 사용하여 rpn classification 계산
         _gt_rpn_label = gt_rpn_label[gt_rpn_label > -1]
         _rpn_score = at.tonumpy(rpn_score)[at.tonumpy(gt_rpn_label) > -1]
         self.rpn_cm.add(at.totensor(_rpn_score, False), _gt_rpn_label.data.long())

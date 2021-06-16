@@ -6,13 +6,20 @@
 
 link= http://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=2d  
 
-1. 위 링크에 접속하여 left color images of objec data set(12GB)와 training labels of object data set(5MB)를 다운로드한다.  
+1. VOC2007 폴더를 생성한 후 내부에 JPEGImages, ImageSets, Annotations 3개의 폴더를 생성한다.  
 
-2. train 폴더 내부의 7481개의 image의 확장자를 png에서 jpg로 변경해준다. 
+![image](https://user-images.githubusercontent.com/69920975/122263210-2362c000-cf11-11eb-9ae1-d26932e05be6.png)
 
-3. 다운로드 받은 알집파일을 gdrive에 업로드 해준다.  
+2. ImageSets 폴더 내부에 Main 폴더를 생성한다.
 
-4. 각각 압축을 풀어준다.
+3. 위 링크에 접속하여 left color images of objec data set(12GB)와 training labels of object data set(5MB)를 다운로드한다.  
+
+
+4. train 폴더 내부의 7481개의 image의 확장자를 png에서 jpg로 변경해준다. 
+
+5. 다시 압축을 한 후 gdrive에 업로드 해준다.  
+
+6. JPEGImages 폴더 내부에 image 압축파일을 넣고 해제한 후 .
 
 (2) Data Preprocessing  
 

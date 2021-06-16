@@ -46,7 +46,8 @@ train.py 파일을 실행시킨다. (train.py 파일 내부에서 epoch를 변�
   
 #### Total Loss
 
-![image](https://user-images.githubusercontent.com/69920975/122258320-e0eab480-cf0b-11eb-814a-6f11379494f3.png)
+![image](https://user-images.githubusercontent.com/69920975/122258688-4a6ac300-cf0c-11eb-8b21-91699b0e7dd7.png)
+
   
 #### Ground Truth Image VS Predicted Image  
 
@@ -55,7 +56,9 @@ train.py 파일을 실행시킨다. (train.py 파일 내부에서 epoch를 변�
 
 #### mAP(meana Average Precision)  
 
-![image](https://user-images.githubusercontent.com/69920975/122258565-20b19c00-cf0c-11eb-9dfb-9255ef87b6b0.png)
+![image](https://user-images.githubusercontent.com/69920975/122258755-5eaec000-cf0c-11eb-89eb-3fc429bfbfd0.png)
+
+  
 
 
 
